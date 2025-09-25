@@ -25,8 +25,11 @@ export async function middleware(request: NextRequest) {
       const data = await debugResponse.json();
       const documentCount = data.collectionInfo?.count || 0;
 
-      // If no documents are processed, redirect to processing page
-      if (documentCount === 0) {
+      // If documents are not fully processed, redirect to processing page
+      // This will redirect until ALL documents are processed
+      const expectedDocuments = 1840; // Total expected documents
+
+      if (documentCount < expectedDocuments) {
         const url = request.nextUrl.clone();
         url.pathname = '/processing';
         return NextResponse.redirect(url);

@@ -10,6 +10,7 @@ export const config = {
   chunkSize: parseInt(process.env.CHUNK_SIZE || '1500'), // Larger chunks for more context
   chunkOverlap: parseInt(process.env.CHUNK_OVERLAP || '300'), // More overlap
   similarityThreshold: parseFloat(process.env.SIMILARITY_THRESHOLD || '-0.1'), // Lower threshold to include more results
+  expectedDocuments: parseInt(process.env.EXPECTED_DOCUMENTS || '1840'), // Expected total documents for completion
 } as const;
 
 export const validateConfig = () => {
