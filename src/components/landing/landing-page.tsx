@@ -7,12 +7,12 @@ import { Send, MessageCircle, FileText, Users, Clock, Shield } from 'lucide-reac
 import { useRouter } from 'next/navigation';
 
 const EXAMPLE_QUESTIONS = [
-  "How do I apply for a residence certificate in Punjab?",
-  "What documents do I need for income certificate?",
-  "How much fee for death certificate and processing time?",
-  "How to get caste certificate for SC category?",
-  "What is the process for senior citizen identity card?",
-  "How many days does it take to get birth certificate?"
+  "How to apply for residence certificate",
+  "Documents required for birth certificate",
+  "How to apply for income certificate step by step process",
+  "What is the application process for Punjab residence certificate?",
+  "Birth certificate application requirements and timeline",
+  "Income certificate documents and application procedure"
 ];
 
 const FEATURES = [
