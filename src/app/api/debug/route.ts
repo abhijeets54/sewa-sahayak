@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { VectorDatabase } from '@/lib/vector-db';
+import { SupabaseVectorDatabase } from '@/lib/supabase-vector-db';
 import { generateEmbedding } from '@/lib/gemini';
+import { config } from '@/lib/config';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    const vectorDB = new VectorDatabase();
+    const vectorDB = config.useSupabase ? new SupabaseVectorDatabase() : new VectorDatabase();
 
     // Get more sources for analysis
     const sources = await vectorDB.searchSimilar(query, 10);
@@ -42,7 +44,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
-    const vectorDB = new VectorDatabase();
+    const vectorDB = config.useSupabase ? new SupabaseVectorDatabase() : new VectorDatabase();
     const collectionInfo = await vectorDB.getCollectionInfo();
 
     return NextResponse.json({
