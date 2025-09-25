@@ -35,7 +35,7 @@ export async function POST() {
       console.log('Collection does not exist or already cleared');
     }
 
-    // Add chunks to vector database
+    // Add chunks to vector database (now optimized for Vercel)
     await vectorDB.addDocuments(chunks);
 
     // Get final collection info

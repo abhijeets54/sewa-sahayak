@@ -8,6 +8,7 @@ export class VectorDatabase {
   private collectionName: string = 'seva-sahayak-documents';
   private memoryData: Map<string, DocumentChunk> = new Map();
   private isUsingMemory: boolean = false;
+  private embeddingCache: Map<string, number[]> = new Map(); // Cache embeddings
 
   constructor() {
     // Try ChromaDB server first, fall back to in-memory storage
@@ -37,19 +38,15 @@ export class VectorDatabase {
       const collection = await this.initializeCollection();
 
       if (this.isUsingMemory) {
-        // Store in memory with embeddings
-        console.log(`Storing ${chunks.length} chunks in memory with embeddings...`);
+        // Store chunks in memory WITHOUT embeddings to avoid timeout
+        // Embeddings will be generated on-demand during search
+        console.log(`Storing ${chunks.length} chunks in memory (without embeddings for faster processing)...`);
+
         for (const chunk of chunks) {
-          try {
-            const embedding = await generateEmbedding(chunk.content);
-            chunk.embedding = embedding;
-            this.memoryData.set(chunk.id, chunk);
-          } catch (error) {
-            console.error(`Failed to generate embedding for chunk ${chunk.id}:`, error);
-            // Store without embedding as fallback
-            this.memoryData.set(chunk.id, chunk);
-          }
+          // Store chunk without embedding - much faster
+          this.memoryData.set(chunk.id, chunk);
         }
+
         console.log(`Successfully stored ${chunks.length} documents in memory`);
         return;
       }
@@ -136,19 +133,69 @@ export class VectorDatabase {
       const queryEmbedding = await generateEmbedding(query);
 
       if (this.isUsingMemory) {
-        // Perform similarity search in memory
+        // Perform similarity search in memory with on-demand embeddings
         const similarities: Array<{chunk: DocumentChunk, similarity: number}> = [];
+        const startTime = Date.now();
+
+        console.log(`Searching ${this.memoryData.size} chunks for: "${query}"`);
+
+        // First pass: Use basic text matching for quick filtering
+        const textMatches: Array<{chunk: DocumentChunk, textScore: number}> = [];
 
         for (const chunk of this.memoryData.values()) {
-          if (chunk.embedding) {
-            const similarity = this.cosineSimilarity(queryEmbedding, chunk.embedding);
-            similarities.push({ chunk, similarity });
-          } else {
-            // Fallback to basic text matching if no embedding
-            const textSimilarity = chunk.content.toLowerCase().includes(query.toLowerCase()) ? 0.5 : 0.1;
-            similarities.push({ chunk, similarity: textSimilarity });
+          const content = chunk.content.toLowerCase();
+          const queryLower = query.toLowerCase();
+
+          // Basic text similarity scoring
+          let textScore = 0;
+          const queryWords = queryLower.split(/\s+/);
+          const matchingWords = queryWords.filter(word => content.includes(word)).length;
+          textScore = matchingWords / queryWords.length;
+
+          // Boost score for exact phrase matches
+          if (content.includes(queryLower)) {
+            textScore += 0.3;
+          }
+
+          if (textScore > 0.1) { // Only consider chunks with some text relevance
+            textMatches.push({ chunk, textScore });
           }
         }
+
+        // Sort by text score and take top candidates for embedding comparison
+        textMatches.sort((a, b) => b.textScore - a.textScore);
+        const topCandidates = textMatches.slice(0, Math.min(50, textMatches.length)); // Limit candidates
+
+        console.log(`Found ${topCandidates.length} text-relevant chunks`);
+
+        // Generate embeddings for top candidates only
+        for (const candidate of topCandidates) {
+          const chunk = candidate.chunk;
+          let chunkEmbedding: number[];
+
+          // Check cache first
+          const cacheKey = chunk.id;
+          if (this.embeddingCache.has(cacheKey)) {
+            chunkEmbedding = this.embeddingCache.get(cacheKey)!;
+          } else {
+            try {
+              // Generate embedding on-demand
+              chunkEmbedding = await generateEmbedding(chunk.content);
+              this.embeddingCache.set(cacheKey, chunkEmbedding);
+            } catch (error) {
+              console.error(`Failed to generate embedding for chunk ${chunk.id}:`, error);
+              // Fallback to text similarity
+              similarities.push({ chunk, similarity: candidate.textScore * 0.8 });
+              continue;
+            }
+          }
+
+          const similarity = this.cosineSimilarity(queryEmbedding, chunkEmbedding);
+          similarities.push({ chunk, similarity });
+        }
+
+        const processingTime = Date.now() - startTime;
+        console.log(`Search completed in ${processingTime}ms`);
 
         // Sort by similarity and take top K
         similarities.sort((a, b) => b.similarity - a.similarity);
@@ -204,7 +251,8 @@ export class VectorDatabase {
     try {
       if (this.isUsingMemory) {
         this.memoryData.clear();
-        console.log('Memory collection cleared successfully');
+        this.embeddingCache.clear(); // Clear embedding cache too
+        console.log('Memory collection and embedding cache cleared successfully');
         return;
       }
 
