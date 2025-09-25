@@ -8,9 +8,10 @@ import { cn, truncateText } from '@/lib/utils';
 
 interface SourceCardProps {
   source: DocumentSource;
+  onOpenPDF?: (filename: string, page: number, title: string) => void;
 }
 
-export function SourceCard({ source }: SourceCardProps) {
+export function SourceCard({ source, onOpenPDF }: SourceCardProps) {
   const relevancePercentage = Math.round(source.relevanceScore * 100);
 
   return (
@@ -47,10 +48,15 @@ export function SourceCard({ source }: SourceCardProps) {
           </div>
 
           <button
-            className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition-colors hover:bg-white rounded"
             onClick={() => {
-              // In a real implementation, this could open the PDF or navigate to the specific page
-              console.log(`Open ${source.document} at page ${source.page}`);
+              if (onOpenPDF) {
+                // Extract filename with .pdf extension
+                const filename = source.document.endsWith('.pdf')
+                  ? source.document
+                  : `${source.document}.pdf`;
+                onOpenPDF(filename, source.page, source.document);
+              }
             }}
             title={`Open ${source.document} at page ${source.page}`}
           >

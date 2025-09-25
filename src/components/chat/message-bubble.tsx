@@ -9,9 +9,10 @@ import { SourceCard } from './source-card';
 interface MessageBubbleProps {
   message: ChatMessage;
   isTyping?: boolean;
+  onOpenPDF?: (filename: string, page: number, title: string) => void;
 }
 
-export function MessageBubble({ message, isTyping = false }: MessageBubbleProps) {
+export function MessageBubble({ message, isTyping = false, onOpenPDF }: MessageBubbleProps) {
   const isUser = message.role === 'user';
 
   return (
@@ -60,7 +61,7 @@ export function MessageBubble({ message, isTyping = false }: MessageBubbleProps)
             </div>
             <div className="grid gap-2">
               {message.sources.map((source, index) => (
-                <SourceCard key={index} source={source} />
+                <SourceCard key={index} source={source} onOpenPDF={onOpenPDF} />
               ))}
             </div>
           </div>

@@ -7,6 +7,7 @@ import { MessageBubble } from './message-bubble';
 import { ChatInput } from './chat-input';
 import { WelcomeScreen } from './welcome-screen';
 import { Button } from '@/components/ui/button';
+import { PDFViewerModal } from '@/components/ui/pdf-viewer-modal';
 import { Home } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -18,11 +19,40 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pdfModal, setPdfModal] = useState<{
+    isOpen: boolean;
+    filename: string;
+    page: number;
+    title: string;
+  }>({
+    isOpen: false,
+    filename: '',
+    page: 1,
+    title: ''
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleOpenPDF = (filename: string, page: number, title: string) => {
+    setPdfModal({
+      isOpen: true,
+      filename,
+      page,
+      title
+    });
+  };
+
+  const handleClosePDF = () => {
+    setPdfModal({
+      isOpen: false,
+      filename: '',
+      page: 1,
+      title: ''
+    });
   };
 
   useEffect(() => {
@@ -157,6 +187,7 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps) {
                   key={message.id}
                   message={message}
                   isTyping={isLoading && index === messages.length - 1 && message.role === 'assistant' && message.content === ''}
+                  onOpenPDF={handleOpenPDF}
                 />
               ))}
             </div>
@@ -184,6 +215,15 @@ export function ChatInterface({ initialMessage }: ChatInterfaceProps) {
           />
         </div>
       </div>
+
+      {/* PDF Viewer Modal */}
+      <PDFViewerModal
+        isOpen={pdfModal.isOpen}
+        onClose={handleClosePDF}
+        filename={pdfModal.filename}
+        initialPage={pdfModal.page}
+        documentTitle={pdfModal.title}
+      />
     </div>
   );
 }
