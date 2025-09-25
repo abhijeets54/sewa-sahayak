@@ -1,0 +1,38 @@
+{
+  "name": "seva-sahayak",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "process-pdfs": "node --loader ts-node/esm scripts/process-pdfs.js"
+  },
+  "dependencies": {
+    "@google/genai": "^1.20.0",
+    "@langchain/core": "^0.3.77",
+    "chromadb": "^1.10.5",
+    "clsx": "^2.1.1",
+    "langchain": "^0.3.0",
+    "lucide-react": "^0.427.0",
+    "next": "14.2.5",
+    "pdf-parse": "^1.1.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwind-merge": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pdf-parse": "^1.1.4",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.5",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5"
+  }
+}
