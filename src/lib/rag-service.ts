@@ -1,13 +1,14 @@
 import { VectorDatabase } from './vector-db';
+import { SupabaseVectorDatabase } from './supabase-vector-db';
 import { generateResponse } from './gemini';
 import { QueryResponse, DocumentSource } from '@/types';
 import { config } from './config';
 
 export class RAGService {
-  private vectorDB: VectorDatabase;
+  private vectorDB: VectorDatabase | SupabaseVectorDatabase;
 
   constructor() {
-    this.vectorDB = new VectorDatabase();
+    this.vectorDB = config.useSupabase ? new SupabaseVectorDatabase() : new VectorDatabase();
   }
 
   private createPrompt(query: string, sources: DocumentSource[]): string {

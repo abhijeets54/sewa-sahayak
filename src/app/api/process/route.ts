@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PDFProcessor } from '@/lib/pdf-processor';
 import { VectorDatabase } from '@/lib/vector-db';
+import { SupabaseVectorDatabase } from '@/lib/supabase-vector-db';
 import { validateConfig, config } from '@/lib/config';
 import path from 'path';
 
@@ -13,7 +14,7 @@ export async function POST() {
 
     // Initialize components
     const pdfProcessor = new PDFProcessor(config.chunkSize, config.chunkOverlap);
-    const vectorDB = new VectorDatabase();
+    const vectorDB = config.useSupabase ? new SupabaseVectorDatabase() : new VectorDatabase();
 
     // Process PDFs
     const pdfDirectory = path.join(process.cwd(), 'pdfs');
@@ -66,7 +67,7 @@ export async function POST() {
 export async function GET() {
   try {
     validateConfig();
-    const vectorDB = new VectorDatabase();
+    const vectorDB = config.useSupabase ? new SupabaseVectorDatabase() : new VectorDatabase();
     const info = await vectorDB.getCollectionInfo();
 
     return NextResponse.json({
