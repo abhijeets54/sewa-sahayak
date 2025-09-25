@@ -26,7 +26,7 @@ export class VectorDatabase {
       console.log('Initialized ChromaDB collection:', this.collectionName);
       return collection;
     } catch (error) {
-      console.warn('ChromaDB server not available, using in-memory storage:', error.message);
+      console.warn('ChromaDB server not available, using in-memory storage:', error instanceof Error ? error.message : String(error));
       this.isUsingMemory = true;
       return null; // Will use memory-based operations
     }
@@ -91,12 +91,14 @@ export class VectorDatabase {
         }));
 
         // Add to collection
-        await collection.add({
-          ids,
-          embeddings,
-          documents,
-          metadatas,
-        });
+        if (collection) {
+          await collection.add({
+            ids,
+            embeddings,
+            documents,
+            metadatas,
+          });
+        }
 
         // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -161,6 +163,10 @@ export class VectorDatabase {
       }
 
       // Perform similarity search using ChromaDB
+      if (!collection) {
+        return [];
+      }
+
       const results = await collection.query({
         queryEmbeddings: [queryEmbedding],
         nResults: topK,
@@ -220,6 +226,13 @@ export class VectorDatabase {
       }
 
       const collection = await this.initializeCollection();
+      if (!collection) {
+        return {
+          name: this.collectionName + ' (Unavailable)',
+          count: 0,
+        };
+      }
+
       const count = await collection.count();
       return {
         name: this.collectionName,

@@ -2,9 +2,9 @@
 
 import { ChatInterface } from '@/components/chat/chat-interface';
 import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
-export default function ChatPage() {
+function ChatContent() {
   const searchParams = useSearchParams();
   const [initialMessage, setInitialMessage] = useState<string | null>(null);
 
@@ -16,4 +16,12 @@ export default function ChatPage() {
   }, [searchParams]);
 
   return <ChatInterface initialMessage={initialMessage} />;
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading...</div>}>
+      <ChatContent />
+    </Suspense>
+  );
 }
