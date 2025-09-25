@@ -20,7 +20,7 @@ export class RAGService {
 
     const contextText = filteredSources
       .map((source, index) =>
-        `Context ${index + 1} (from '${source.document}', Page ${source.page}, Relevance: ${(source.relevanceScore * 100).toFixed(1)}%):\n${source.content}`
+        `Context ${index + 1} (from '${source.document}'${source.page ? `, Page ${source.page}` : ''}, Relevance: ${(source.relevanceScore * 100).toFixed(1)}%):\n${source.content}`
       )
       .join('\n\n---\n\n');
 

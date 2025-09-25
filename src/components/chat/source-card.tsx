@@ -28,7 +28,7 @@ export function SourceCard({ source, onOpenPDF }: SourceCardProps) {
                 {source.document}
               </h4>
               <div className="flex items-center gap-2 text-xs text-gray-500 flex-shrink-0">
-                <span>Page {source.page}</span>
+                {source.page && <span>Page {source.page}</span>}
                 <div className={cn(
                   'px-2 py-1 rounded-full text-xs font-medium',
                   relevancePercentage >= 80
@@ -55,10 +55,10 @@ export function SourceCard({ source, onOpenPDF }: SourceCardProps) {
                 const filename = source.document.endsWith('.pdf')
                   ? source.document
                   : `${source.document}.pdf`;
-                onOpenPDF(filename, source.page, source.document);
+                onOpenPDF(filename, source.page || 1, source.document);
               }
             }}
-            title={`Open ${source.document} at page ${source.page}`}
+            title={`Open ${source.document}${source.page ? ` at page ${source.page}` : ''}`}
           >
             <ExternalLink className="w-3 h-3" />
           </button>
