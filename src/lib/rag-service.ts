@@ -105,13 +105,18 @@ DETAILED ANSWER (extract all relevant information from the context):`;
     try {
       console.log(`Processing query: ${userQuery}`);
 
-      // Step 1: Generate query variations for better matching
+      // Step 1: Generate query variations for better matching (limit to reduce API calls)
       const queryVariations = this.generateQueryVariations(userQuery);
 
-      // Step 2: Search with multiple variations and combine results
+      // Limit variations to reduce API calls for free tier
+      const limitedVariations = queryVariations.slice(0, 3); // Only use first 3 variations
+
+      console.log(`Using ${limitedVariations.length} query variations to stay within API limits`);
+
+      // Step 2: Search with limited variations and combine results
       const allSources: DocumentSource[] = [];
 
-      for (const variation of queryVariations) {
+      for (const variation of limitedVariations) {
         const sources = await this.vectorDB.searchSimilar(variation, config.topKResults);
         allSources.push(...sources);
       }
@@ -129,7 +134,7 @@ DETAILED ANSWER (extract all relevant information from the context):`;
         };
       }
 
-      console.log(`Found ${uniqueSources.length} relevant sources from ${queryVariations.length} query variations`);
+      console.log(`Found ${uniqueSources.length} relevant sources from ${limitedVariations.length} query variations`);
 
       // Step 3: Generate prompt with context
       const prompt = this.createPrompt(userQuery, uniqueSources);
