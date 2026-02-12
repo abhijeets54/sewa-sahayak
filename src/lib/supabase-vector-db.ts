@@ -64,19 +64,49 @@ export class SupabaseVectorDatabase {
           }
         }
 
-        // Insert batch into Supabase
-        const { error } = await this.supabase
-          .from(this.tableName)
-          .insert(documentsToInsert);
+        // Insert batch into Supabase with retry logic (using upsert to skip duplicates)
+        let insertError = null;
+        let retries = 3;
+        
+        while (retries > 0) {
+          try {
+            const { error } = await this.supabase
+              .from(this.tableName)
+              .upsert(documentsToInsert, { onConflict: 'id' });
 
-        if (error) {
-          console.error(`Error inserting batch ${batchNumber}:`, error);
-          throw error;
+            if (error) {
+              insertError = error;
+              console.error(`Error inserting batch ${batchNumber}:`, error);
+              retries--;
+              
+              if (retries > 0) {
+                const waitTime = 2000 * (4 - retries); // Exponential backoff: 2s, 4s
+                console.log(`ℹ️  Retrying batch ${batchNumber} in ${waitTime}ms... (${retries} retries left)`);
+                await new Promise(resolve => setTimeout(resolve, waitTime));
+              }
+            } else {
+              insertError = null;
+              retries = 0; // Success, exit loop
+            }
+          } catch (err) {
+            insertError = err;
+            retries--;
+            
+            if (retries > 0) {
+              const waitTime = 2000 * (4 - retries);
+              console.log(`⚠️  Network error, retrying in ${waitTime}ms... (${retries} retries left)`);
+              await new Promise(resolve => setTimeout(resolve, waitTime));
+            }
+          }
         }
 
-        // Small delay between batches
+        if (insertError) {
+          throw insertError;
+        }
+
+        // Longer delay between batches to avoid rate limits and network issues
         if (i + batchSize < chunks.length) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise(resolve => setTimeout(resolve, 1500));
         }
       }
 

@@ -7,7 +7,14 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "process-pdfs": "node --loader ts-node/esm scripts/process-pdfs.js"
+    "process-pdfs": "tsx scripts/process-pdfs.mjs",
+    "test:embedding": "tsx scripts/test-embedding.mjs",
+    "check-progress": "tsx scripts/check-progress.mjs",
+    "list-models": "tsx scripts/list-models.mjs",
+    "migrate:validate": "node scripts/migrate-supabase.js validate",
+    "migrate:setup": "node scripts/migrate-supabase.js setup",
+    "migrate:test": "node scripts/migrate-supabase.js test",
+    "migrate:wizard": "node scripts/migrate-supabase.js wizard"
   },
   "dependencies": {
     "@google/genai": "^1.20.0",
@@ -36,6 +43,7 @@
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

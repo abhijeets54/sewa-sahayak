@@ -1,6 +1,6 @@
 import { VectorDatabase } from './vector-db';
 import { SupabaseVectorDatabase } from './supabase-vector-db';
-import { generateResponse } from './gemini';
+import { generateResponseWithGroq } from './gemini';
 import { QueryResponse, DocumentSource } from '@/types';
 import { config } from './config';
 
@@ -139,8 +139,8 @@ DETAILED ANSWER (extract all relevant information from the context):`;
       // Step 3: Generate prompt with context
       const prompt = this.createPrompt(userQuery, uniqueSources);
 
-      // Step 4: Generate response using Gemini
-      const answer = await generateResponse(prompt);
+      // Step 4: Generate response using Groq (better free tier limits)
+      const answer = await generateResponseWithGroq(prompt);
 
       return {
         answer,

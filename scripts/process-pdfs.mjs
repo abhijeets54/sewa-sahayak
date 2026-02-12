@@ -1,8 +1,34 @@
-const path = require('path');
-const { PDFProcessor } = require('../src/lib/pdf-processor.ts');
-const { VectorDatabase } = require('../src/lib/vector-db.ts');
-const { SupabaseVectorDatabase } = require('../src/lib/supabase-vector-db.ts');
-const { config } = require('../src/lib/config.ts');
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
+
+// Load environment variables FIRST before importing anything else
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const envPath = path.join(__dirname, '..', '.env.local');
+
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  const lines = envContent.split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key) {
+        process.env[key.trim()] = valueParts.join('=').trim();
+      }
+    }
+  }
+  console.log('✓ Loaded environment variables from .env.local');
+} else {
+  console.warn('⚠️ .env.local file not found - environment variables not loaded');
+}
+
+// Now import the modules that depend on environment variables
+const { PDFProcessor } = await import('../src/lib/pdf-processor.ts');
+const { VectorDatabase } = await import('../src/lib/vector-db.ts');
+const { SupabaseVectorDatabase } = await import('../src/lib/supabase-vector-db.ts');
+const { config } = await import('../src/lib/config.ts');
 
 async function processPDFs() {
   console.log('🚀 Starting PDF processing pipeline...');
@@ -59,7 +85,4 @@ async function processPDFs() {
   }
 }
 
-processPDFs();
-
-// Run the pipeline
 processPDFs();
